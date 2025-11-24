@@ -1,0 +1,105 @@
+
+
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Document</title>
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-9ndCyUaIbzAi2FUVXJi0CjmCapSmO7SnpJef0486qhLnuZ2cdeRhO02iuK6FUUVM" crossorigin="anonymous">
+    
+        <style>
+            .my-form {
+                position: fixed;
+            }
+        </style>
+
+        <style>
+    .map-container {
+        position: fixed;
+        bottom: 0;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 80%;
+        height: 400px;
+        z-index: 900;
+        box-shadow: 0 0 10px rgba(0,0,0,0.3);
+    }
+    .my-form {
+        position: fixed;
+        bottom: 420px;
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 1000;
+        width: 400px;
+    }
+    
+</style>
+    
+    <head>
+    <body>
+        <nav class="navbar bg-body-tertiary">
+        <div class="container-fluid">
+        <a class="navbar-brand" href="#">Navbar</a>
+        </div>
+        </nav>
+
+        
+<div class="container text-center">
+    <nav class="navbar bg-body-tertiary">
+        <div class="container-fluid">
+        <a class="navbar-brand" href="#">Navbar</a>
+        </div>
+        </nav>
+<div class="row align-items-center">
+<div class="col">
+One of three columns
+</div>
+<div class="col">
+One of three columns
+</div>
+<div class="col">
+One of three columns
+</div>
+</div>
+</div>
+
+<!--
+  
+<form class="input-group mb-3 my-form" action="" method="POST">
+  <input type="text" name="content" class="content" value="{{ last_input}}" placeholder="Start" aria-label="Recipient’s username" aria-describedby="button-addon2">
+  <button class="btn btn-outline-secondary" type="submit">Senden</button>
+</form>
+-->
+<div class="container mt-3">
+    <h1>Route berechnen</h1>
+</div>
+
+<form class="input-group mb-3 my-form" action="/" method="POST">
+    <input type="text" name="start" class="form-control" placeholder="Startadresse">
+    <input type="text" name="ziel" class="form-control" placeholder="Zieladresse">
+    <button class="btn btn-primary" type="submit">Route anzeigen</button>
+</form>
+
+<div class="map-container">
+    {{ map_html | safe }}
+</div>
+
+
+
+
+    </body>
+    </html>
+
+
+
+
+
+
+
+
+
+
+
+
