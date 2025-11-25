@@ -113,6 +113,18 @@ def home(name=None):
                 folium.Marker([end_lat, end_lon], popup="Ziel", tooltip=end_address).add_to(m)
                 folium.PolyLine(route_points, color="blue", weight=5, opacity=0.8).add_to(m)
 
+                #Auto-Zoom
+                if route_points:
+                    lats = [p[0] for p in route_points]
+                    lons = [p[1] for p in route_points]
+
+                    bounds = [
+                        [min(lats), min(lons)],   
+                        [max(lats), max(lons)]    
+                    ]
+                    m.fit_bounds(bounds)
+
+
                 # Info Box
                 info_html = f"""
                 <div style="
