@@ -104,6 +104,8 @@ def home(name=None):
 
         # --- Karte erzeugen ---
         if start_address and end_address:
+            
+            # Neue Route in DB speichern
             neue_route = Route(
                 user=name,
                 start_address=start_address,
