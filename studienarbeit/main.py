@@ -2,6 +2,7 @@
 from flask import Flask, render_template, request
 from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime, timezone
+from flask import session
 
 # Imports für Folium & ORS
 import folium
@@ -10,15 +11,22 @@ from openrouteservice import convert
 
 app = Flask(__name__)
 
+#Variablen für die DB
+varb = "qwertz"
+varc = "qwertz"
+print(varb, varc)
+
 # DB Konfiguration
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///db.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 
-class Message(db.Model):
+class Route(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    user = db.Column(db.String(200), nullable=True)
-    content = db.Column(db.String(200), nullable=True)
+    user = db.Column(db.String(120))        # optional
+    start_address = db.Column(db.String(255))
+    end_address = db.Column(db.String(255))
+    profile = db.Column(db.String(50))
     created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
 
 # -------------------------
@@ -71,6 +79,8 @@ def get_route_ors(profile: str, start_lat, start_lon, end_lat, end_lon):
 # -------------------------
 # Flask Route erweitern
 # -------------------------
+
+
 @app.route("/", methods=['GET', 'POST'])
 @app.route("/<name>", methods=['GET', 'POST'])
 def home(name=None):
@@ -79,20 +89,35 @@ def home(name=None):
 
     # --- Nachrichten speichern ---
     if request.method == 'POST':
-        content = request.form.get('content')
+        print("Wurde ausgeführt")
         start_address = request.form.get('start')
         end_address = request.form.get('ziel')
         profile = request.form.get('profile', 'driving-car')
         profile_label = PROFILE_LABELS.get(profile, "Auto")
-
-        if content:
-            new_message = Message(user=name, content=content)
-            db.session.add(new_message)
-            db.session.commit()
-            last_input = content
+        print(start_address, end_address, profile)
+        
+        #if content:
+        #    new_message = Message(user=name, content=content)
+        #    db.session.add(new_message)
+        #    db.session.commit()
+        #    last_input = content
 
         # --- Karte erzeugen ---
         if start_address and end_address:
+            neue_route = Route(
+                user=name,
+                start_address=start_address,
+                end_address=end_address,
+                profile=profile
+            )
+            db.session.add(neue_route)
+            db.session.commit()
+
+            print("Startadresse gespeichert:", start_address)
+            print("wurde leider nicht ausgeführt")
+            #new_message = Message(user=name)
+            #db.session.add(new_message)
+            #db.session.commit()
             try:
                 start_lat, start_lon = geocode_geoapify(start_address)
                 end_lat, end_lon = geocode_geoapify(end_address)
@@ -152,8 +177,13 @@ def home(name=None):
                 map_html = m.get_root().render()
             except Exception as e:
                 map_html = f"<p style='color:red;'>Fehler bei der Routenberechnung: {e}</p>"
+    
+    return render_template('index.html', vara=last_input, map_html=map_html)
 
-    return render_template('index.html', last_input=last_input, map_html=map_html)
+
 
 if __name__ == "__main__":
     app.run(debug=True)
+    
+    
+    
