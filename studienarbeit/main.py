@@ -27,6 +27,15 @@ class Message(db.Model):
 GEO_API_KEY = "c3575e31c8034abb8369480f3829584a"
 ORS_API_KEY = "eyJvcmciOiI1YjNjZTM1OTc4NTExMTAwMDFjZjYyNDgiLCJpZCI6ImJkZDQ5OWM3ZmM2NWI2ZmY2ZGVhYTRlMTdiOTk2YzZiOGNhYzVjZjRlNWE5YjVmZjBjMGM3NTRmIiwiaCI6Im11cm11cjY0In0="
 
+
+#Labels für die Anzeige
+PROFILE_LABELS = {
+    "driving-car": "Auto",
+    "cycling-regular": "Fahrrad",
+    "foot-walking": "zu Fuß",
+}
+    
+
 def geocode_geoapify(address: str):
     url = "https://api.geoapify.com/v1/geocode/search"
     params = {"text": address, "apiKey": GEO_API_KEY, "format": "json"}
@@ -41,13 +50,23 @@ def geocode_geoapify(address: str):
 
 def get_route_ors(profile: str, start_lat, start_lon, end_lat, end_lon):
     url = f"https://api.openrouteservice.org/v2/directions/{profile}"
-    headers = {"Authorization": ORS_API_KEY, "Content-Type": "application/json"}
+    headers = {"Authorization": ORS_API_KEY, "Content-Type": "application/json; charset=utf-8"}
     body = {"coordinates": [[start_lon, start_lat],[end_lon, end_lat]]}
     r = requests.post(url, headers=headers, json=body, verify=False)
     data = r.json()
-    coords = convert.decode_polyline(data["routes"][0]["geometry"])["coordinates"]
+    if "routes" not in data or not data["routes"]:
+        raise ValueError(f"Keine Route von ORS erhalten: {data}")
+
+    summary = data["routes"][0]["summary"]
+    distance_m = summary["distance"]       # Meter
+    duration_s = summary["duration"]       # Sekunden
+
+    encoded = data["routes"][0]["geometry"]
+    decoded = convert.decode_polyline(encoded)
+    coords = decoded["coordinates"]        # [[lon, lat], ...]
+
     route_points = [(lat, lon) for lon, lat in coords]
-    return route_points
+    return route_points, distance_m, duration_s
 
 # -------------------------
 # Flask Route erweitern
@@ -63,6 +82,8 @@ def home(name=None):
         content = request.form.get('content')
         start_address = request.form.get('start')
         end_address = request.form.get('ziel')
+        profile = request.form.get('profile', 'driving-car')
+        profile_label = PROFILE_LABELS.get(profile, "Auto")
 
         if content:
             new_message = Message(user=name, content=content)
@@ -73,10 +94,17 @@ def home(name=None):
         # --- Karte erzeugen ---
         if start_address and end_address:
             try:
-                profile = "driving-car"
                 start_lat, start_lon = geocode_geoapify(start_address)
                 end_lat, end_lon = geocode_geoapify(end_address)
-                route_points = get_route_ors(profile, start_lat, start_lon, end_lat, end_lon)
+                route_points, distance_m, duration_s = get_route_ors(profile, start_lat, start_lon, end_lat, end_lon)
+                distance_km = distance_m / 1000.0
+                total_minutes = int(round(duration_s / 60.0))
+                if total_minutes >= 60:
+                    hours = total_minutes // 60
+                    minutes = total_minutes % 60
+                    dauer_text = f"{hours} h {minutes} min"
+                else:
+                    dauer_text = f"{total_minutes} min"
 
                 center_lat = (start_lat + end_lat) / 2
                 center_lon = (start_lon + end_lon) / 2
@@ -86,14 +114,23 @@ def home(name=None):
                 folium.PolyLine(route_points, color="blue", weight=5, opacity=0.8).add_to(m)
 
                 # Info Box
-                distance_km = sum(
-                    ((route_points[i+1][0]-route_points[i][0])**2 + 
-                     (route_points[i+1][1]-route_points[i][1])**2)**0.5
-                    for i in range(len(route_points)-1)
-                ) * 111  # grobe Umrechnung in km
                 info_html = f"""
-                <div style='position: fixed; top: 10px; left: 10px; z-index: 9999; background-color: white; padding: 10px; border-radius: 8px; box-shadow: 0 0 8px rgba(0,0,0,0.3);'>
-                <b>Route Info</b><br>Start: {start_address}<br>Ziel: {end_address}<br>Distanz: {distance_km:.1f} km
+                <div style="
+                    position: fixed;
+                    top: 10px;
+                    left: 10px;
+                    z-index: 9999;
+                    background-color: white;
+                    padding: 10px 15px;
+                    border-radius: 8px;
+                    box-shadow: 0 0 8px rgba(0,0,0,0.3);
+                    font-size: 14px;
+                ">
+                    <b>Route-Info ({profile_label})</b><br>
+                    Start: {start_address}<br>
+                    Ziel: {end_address}<br>
+                    Entfernung: {distance_km:.2f} km<br>
+                    Dauer: {dauer_text}
                 </div>
                 """
                 m.get_root().html.add_child(folium.Element(info_html))
