@@ -128,15 +128,18 @@ def home(name=None):
                 # Info Box
                 info_html = f"""
                 <div style="
-                    position: fixed;
-                    top: 140px;
-                    left: 170px;
+                    position: absolute;
+                    top: 15px;
+                    left: 15px;
                     z-index: 9999;
                     background-color: white;
-                    padding: 10px 15px;
-                    border-radius: 8px;
-                    box-shadow: 0 0 8px rgba(0,0,0,0.3);
-                    font-size: 14px;
+                    padding: 12px 18px;
+                    border-radius: 10px;
+                    box-shadow: 0 0 10px rgba(0,0,0,0.3);
+                    /* Schriftgröße passt sich an: auf kleineren Screens etwas kleiner,
+                    auf großen Screens deutlich größer als vorher */
+                    font-size: clamp(0.95rem, 0.5vw + 0.6rem, 1.15rem);
+                    line-height: 1.4;
                 ">
                     <b>Route-Info ({profile_label})</b><br>
                     Start: {start_address}<br>
