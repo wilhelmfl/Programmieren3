@@ -29,6 +29,9 @@ class Route(db.Model):
     profile = db.Column(db.String(50))
     created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
 
+with app.app_context():
+    db.create_all()
+
 # -------------------------
 # Karte / ORS Funktionen
 # -------------------------
