@@ -116,7 +116,7 @@ def home(name=None):
                 profile=profile
             )
             db.session.add(neue_route)
-            db.session.commit()
+            #db.session.commit()        #Auskommentiert zum Testen
 
             print("Startadresse gespeichert:", start_address)
             print("wurde leider nicht ausgeführt")
