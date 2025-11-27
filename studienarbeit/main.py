@@ -160,8 +160,8 @@ def home(name=None):
                 info_html = f"""
                 <div style="
                     position: absolute;
-                    top: 15px;
-                    left: 15px;
+                    top: 75px;
+                    left: 12px;
                     z-index: 9999;
                     background-color: white;
                     padding: 12px 18px;
