@@ -102,7 +102,7 @@ def home(name=None):
         #if content:
         #    new_message = Message(user=name, content=content)
         #    db.session.add(new_message)
-        #    db.session.commit()
+        #  kkl  db.session.commit()
         #    last_input = content
 
         # --- Karte erzeugen ---
