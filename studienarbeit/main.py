@@ -1,13 +1,64 @@
-# Imports für Flask & DB
-from flask import Flask, render_template, request
+from flask import Flask, render_template, request, render_template_string
 from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime, timezone
 from flask import session
 
 # Imports für Folium & ORS
+import geocoder
 import folium
 import requests
 from openrouteservice import convert
+
+app = Flask(__name__)
+
+html = """
+<!DOCTYPE html>
+<html>
+<body>
+<button onclick="getLocation()">Standort senden</button>
+
+<script>
+function getLocation() {
+    navigator.geolocation.getCurrentPosition(pos => {
+        fetch('/location', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({
+                lat: pos.coords.latitude,
+                lon: pos.coords.longitude
+            })
+        }).then(r => r.text()).then(alert);
+    });
+}
+window.addEventListener("load", (event) => {
+  getLocation()
+});
+</script>
+</body>
+</html>
+"""
+
+
+@app.route("/")
+def index():
+    return render_template_string(html)
+
+@app.route("/location", methods=["POST"])
+def location():
+    data = request.json
+    print("Deine Koordinaten:", data)
+    return "Empfangen!"
+
+app.run(debug=True)
+
+#funktioniert nicht
+#payload = {"considerIp": True}
+#res = requests.post("https://location.services.mozilla.com/v1/geolocate?key=test", json=payload)
+#print(res.json())
+
+#standort mit ip sehr ungenau
+#g = geocoder.ip('me')
+#print(g.latlng)
 
 app = Flask(__name__)
 
@@ -187,8 +238,5 @@ def home(name=None):
 
 
 
-if __name__ == "__main__":
+if __name__ == "_main_":
     app.run(debug=True)
-    
-    
-    
