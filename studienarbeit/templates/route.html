@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Route anzeigen</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        html, body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            overflow-x: hidden;
+        }
+
+        .navbar-form {
+            position: sticky;
+            top: 0;
+            z-index: 1050;
+            background-color: #f8f9fa;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .map-container {
+            width: min(90vw, 1400px);
+            height: 70vh;
+            margin: 30px auto;
+            box-shadow: 0 0 10px rgba(0,0,0,0.3);
+        }
+
+        .leaflet-container {
+            width: 100% !important;
+            height: 100% !important;
+        }
+
+        .route-form {
+            max-width: 1400px;
+            margin: 30px auto;
+        }
+    </style>
+</head>
+<body>
+
+<!-- Navbar clean, wie auf Startseite 
+
+Wat nicht schön blöde umrandung und alles
+
+<nav class="navbar navbar-expand-lg navbar-light bg-light navbar-form">
+    <div class="container-fluid">
+        <span class="navbar-brand mb-0 h1">Routenplaner</span>
+        <div>
+            <a href="/" class="btn btn-outline-primary">Routenplaner</a>
+            <a href="/infos" class="btn btn-outline-secondary">Infos</a>
+        </div>
+    </div>
+</nav>-->
+
+<nav class="navbar navbar-expand-lg navbar-light bg-light navbar-form">
+    <div class="container-fluid">
+        <!-- Anzeige aktuelle Seite -->
+        <span class="navbar-brand mb-0 h1">{{ active_page }}</span>
+
+        <div class="collapse navbar-collapse justify-content-end">
+            <ul class="navbar-nav mb-2 mb-lg-0">
+                <li class="nav-item">
+                    <a class="nav-link {% if active_page == 'Routenplaner' %}active{% endif %}" href="/">Routenplaner</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link {% if active_page == 'Infos' %}active{% endif %}" href="/infos">Infos</a>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+
+<!-- Formular über der Karte -->
+<div class="route-form">
+    <form action="/route" method="POST" class="row g-2 align-items-center">
+        <div class="col-12 col-md">
+            <input type="text" name="start" class="form-control form-control-lg" placeholder="{{ start }}">
+        </div>
+
+        <div class="col-12 col-md">
+            <input type="text" name="ziel" class="form-control form-control-lg" placeholder="{{ ziel }}">
+        </div>
+
+        <div class="col-6 col-md-2">
+            <select name="profile" class="form-select form-select-lg">
+                <option value="driving-car">Auto</option>
+                <option value="cycling-regular">Fahrrad</option>
+                <option value="foot-walking">Zu Fuß</option>
+            </select>
+        </div>
+
+        <div class="col-6 col-md-auto">
+            <button class="btn btn-primary btn-lg w-100" type="submit">Route anzeigen</button>
+        </div>
+    </form>
+</div>
+
+<!-- Karte -->
+<div class="map-container">
+    {{ map_html | safe }}
+</div>
+
+</body>
+</html>
+
+<!-- <p>Start: {{ start }} | Ziel: {{ ziel }} | Profil: {{ profile }}</p>
+        Karte wird hier eingebunden -->
