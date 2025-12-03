@@ -11,6 +11,9 @@ from openrouteservice import convert
 
 app = Flask(__name__)
 
+#Koordinate für akteullen Stadnort
+aktueller_standort = None
+
 html = """
 <!DOCTYPE html>
 <html>
