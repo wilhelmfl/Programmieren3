@@ -1,3 +1,4 @@
+#Test
 # Imports für Flask & DB
 from flask import Flask, render_template, request
 from flask_sqlalchemy import SQLAlchemy
@@ -159,8 +160,8 @@ def home(name=None):
                 info_html = f"""
                 <div style="
                     position: absolute;
-                    top: 15px;
-                    left: 15px;
+                    top: 75px;
+                    left: 12px;
                     z-index: 9999;
                     background-color: white;
                     padding: 12px 18px;
@@ -187,8 +188,9 @@ def home(name=None):
 
 
 
+
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(host="0.0.0.0", port=5000)
     
     
     
