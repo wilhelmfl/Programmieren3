@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Infos</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+          rel="stylesheet"
+          integrity="sha384-9ndCyUaIbzAi2FUVXJi0CjmCapSmO7SnpJef0486qhLnuZ2cdeRhO02iuK6FUUVM"
+          crossorigin="anonymous">
+
+    <style>
+        html, body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            max-width: 100%;
+            overflow-x: hidden;
+        }
+
+        .navbar-form {
+            position: sticky;
+            top: 0;
+            z-index: 1050;
+            background-color: #f8f9fa;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .content-container {
+            text-align: center;
+            margin: 50px auto;
+        }
+    </style>
+</head>
+<body>
+
+<nav class="navbar navbar-expand-lg navbar-light bg-light navbar-form">
+    <div class="container-fluid">
+        <!-- Anzeige aktuelle Seite -->
+        <span class="navbar-brand mb-0 h1">{{ active_page }}</span>
+
+        <div class="collapse navbar-collapse justify-content-end">
+            <ul class="navbar-nav mb-2 mb-lg-0">
+                <li class="nav-item">
+                    <a class="nav-link {% if active_page == 'Routenplaner' %}active{% endif %}" href="/">Routenplaner</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link {% if active_page == 'Infos' %}active{% endif %}" href="/infos">Infos</a>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<div class="content-container">
+    <h1>Informationen zu dieser Webseite</h1>
+    <p>Das ist die Info-Seite deines Routenplaners.</p>
+    <p>Erstellt wurde diese Seite als Projekt in einem Studienarbeit im Bereich Programmieren.</p>
+    <p>Erstellt von: Joshua Holzapfel, Johannes Maier, Florian Wilhelm</p>
+</div>
+
+</body>
+</html>
