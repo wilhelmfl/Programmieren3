@@ -198,10 +198,14 @@ from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime, timezone
 import folium
 import requests
+import json
 from openrouteservice import convert
 
 
 app = Flask(__name__)
+
+last_start_coords = None
+last_ziel_coords = None
 
 # DB Konfiguration
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///db.db'
@@ -264,6 +268,24 @@ def get_route_ors(profile: str, start_lat, start_lon, end_lat, end_lon):
 # ----------------------------
 # Seiten
 # ----------------------------
+
+# Temporärer Speicher für aktuelle Koordinaten
+CURRENT_COORDS = {"start": None, "ziel": None}
+
+@app.route("/location", methods=["POST"])
+def location():
+    global last_start_coords, last_ziel_coords
+
+    data = request.json
+    print(">>> Standort erhalten:", data)
+
+    if data.get("target") == "start":
+        last_start_coords = {"lat": data["lat"], "lon": data["lon"]}
+    elif data.get("target") == "ziel":
+        last_ziel_coords = {"lat": data["lat"], "lon": data["lon"]}
+
+    return "Standort empfangen!"
+
 @app.route("/")
 def routenplaner():
     return render_template('routenplaner.html', active_page='Routenplaner')
@@ -274,15 +296,34 @@ def infos():
 
 @app.route("/route", methods=['POST'])
 def route_ergebnis():
-    start_address = request.form.get('start')
-    end_address = request.form.get('ziel')
-    profile = request.form.get('profile', 'driving-car')
+    global last_start_coords, last_ziel_coords
+
+    start_address = request.form.get("start")
+    end_address = request.form.get("ziel")
+    profile = request.form.get("profile", "driving-car")
     profile_label = PROFILE_LABELS.get(profile, "Auto")
 
-    # Alte Routenlogik kopieren
-    try:
+    # --- START ---
+    if start_address == "Mein Standort" and last_start_coords:
+        start_lat = last_start_coords["lat"]
+        start_lon = last_start_coords["lon"]
+    else:
         start_lat, start_lon = geocode_geoapify(start_address)
+
+    # --- ZIEL ---
+    if end_address == "Mein Standort" and last_ziel_coords:
+        end_lat = last_ziel_coords["lat"]
+        end_lon = last_ziel_coords["lon"]
+    else:
         end_lat, end_lon = geocode_geoapify(end_address)
+
+    # --- JETZT NICHT MEHR überschreiben! ---
+    # Der folgende Block war falsch und wurde ENTFERNT:
+    # start_lat, start_lon = geocode_geoapify(start_address)
+    # end_lat, end_lon = geocode_geoapify(end_address)
+
+    # --- Route normal berechnen ---
+    try:
         route_points, distance_m, duration_s = get_route_ors(profile, start_lat, start_lon, end_lat, end_lon)
         distance_km = distance_m / 1000.0
         total_minutes = int(round(duration_s / 60.0))
@@ -293,9 +334,11 @@ def route_ergebnis():
         else:
             dauer_text = f"{total_minutes} min"
 
+        # Kartenzentrum
         center_lat = (start_lat + end_lat) / 2
         center_lon = (start_lon + end_lon) / 2
         m = folium.Map(location=[center_lat, center_lon], zoom_start=12)
+
         folium.Marker([start_lat, start_lon], popup="Start", tooltip=start_address).add_to(m)
         folium.Marker([end_lat, end_lon], popup="Ziel", tooltip=end_address).add_to(m)
         folium.PolyLine(route_points, color="blue", weight=5, opacity=0.8).add_to(m)
@@ -306,7 +349,6 @@ def route_ergebnis():
         bounds = [[min(lats), min(lons)], [max(lats), max(lons)]]
         m.fit_bounds(bounds)
 
-        # Info Box
         info_html = f"""
         <div style="
             position: absolute;
@@ -329,15 +371,12 @@ def route_ergebnis():
         """
         m.get_root().html.add_child(folium.Element(info_html))
         map_html = m.get_root().render()
+
     except Exception as e:
         map_html = f"<p style='color:red; font-size:1.2rem'>Fehler bei der Routenberechnung: {e}<br><br>Möglicher Fehler:<br>Keine neuen Orte eingegeben!<br><br>Ansonsten:<br>Bitte überprüfen Sie die Eingaben und versuchen Sie es erneut.<br><br>Ansonsten bitte den Support kontaktieren</p>"
 
-
-
-    # Route in DB speichern
     neue_route = Route(start_address=start_address, end_address=end_address, profile=profile)
     db.session.add(neue_route)
-    # db.session.commit()
 
     return render_template('route.html', active_page='Routenplaner',
                            start=start_address, ziel=end_address,
