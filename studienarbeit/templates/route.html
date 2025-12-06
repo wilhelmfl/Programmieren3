@@ -41,23 +41,69 @@
 </head>
 <body>
 
-<!-- Navbar clean, wie auf Startseite 
+<script>
+// --- Standort-System wie auf der Startseite ---
+let startCoords = null;
+let zielCoords = null;
 
-War nicht schön blöde umrandung und alles
+window.addEventListener("DOMContentLoaded", function () {
+
+    // Inputs
+    const startInput = document.getElementById("start-input");
+    const zielInput = document.getElementById("ziel-input");
+
+    // Buttons
+    const startButton = document.getElementById("location-toggle-start");
+    const zielButton  = document.getElementById("location-toggle-ziel");
+
+    // Hidden Inputs
+    const startHidden = document.getElementById("start_coords_hidden");
+    const zielHidden  = document.getElementById("ziel_coords_hidden");
+
+    function getLocationAndFillInput(inputField, hiddenField, mode) {
+        navigator.geolocation.getCurrentPosition(pos => {
+
+            const lat = pos.coords.latitude;
+            const lon = pos.coords.longitude;
+
+            // Sichtbarer Text
+            inputField.value = "Mein Standort";
+
+            // Hidden Input füllen
+            hiddenField.value = JSON.stringify({lat, lon});
+
+            // auch an /location senden
+            fetch('/location', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ lat, lon, target: mode })
+            });
+
+        }, err => {
+            alert("Standort konnte nicht ermittelt werden.");
+        });
+    }
+
+    // Button Start
+    if (startButton) {
+        startButton.addEventListener("click", () => {
+            getLocationAndFillInput(startInput, startHidden, "start");
+            startButton.classList.add("btn-primary");
+        });
+    }
+
+    // Button Ziel
+    if (zielButton) {
+        zielButton.addEventListener("click", () => {
+            getLocationAndFillInput(zielInput, zielHidden, "ziel");
+            zielButton.classList.add("btn-primary");
+        });
+    }
+});
+</script>
 
 <nav class="navbar navbar-expand-lg navbar-light bg-light navbar-form">
     <div class="container-fluid">
-        <span class="navbar-brand mb-0 h1">Routenplaner</span>
-        <div>
-            <a href="/" class="btn btn-outline-primary">Routenplaner</a>
-            <a href="/infos" class="btn btn-outline-secondary">Infos</a>
-        </div>
-    </div>
-</nav>-->
-
-<nav class="navbar navbar-expand-lg navbar-light bg-light navbar-form">
-    <div class="container-fluid">
-        <!-- Anzeige aktuelle Seite -->
         <span class="navbar-brand mb-0 h1">{{ active_page }}</span>
 
         <div class="collapse navbar-collapse justify-content-end">
@@ -73,29 +119,64 @@ War nicht schön blöde umrandung und alles
     </div>
 </nav>
 
-
-<!-- Formular über der Karte -->
+<!-- Formular -->
 <div class="route-form">
     <form action="/route" method="POST" class="row g-2 align-items-center">
-        <div class="col-12 col-md">
-            <input type="text" name="start" class="form-control form-control-lg" placeholder="{{ start }}">
+
+        <!-- START -->
+        <div class="col-12 col-md-3">
+            <div class="input-group input-group-lg">
+
+                <input type="text"
+                       name="start"
+                       id="start-input"
+                       class="form-control"
+                       placeholder="{{ start }}"
+                       required>
+
+                <!-- Standort-Button -->
+                <button id="location-toggle-start"
+                        class="btn btn-outline-secondary"
+                        type="button">📍</button>
+
+                <!-- Hidden Start -->
+                <input type="hidden" name="start_coords" id="start_coords_hidden">
+            </div>
         </div>
 
-        <div class="col-12 col-md">
-            <input type="text" name="ziel" class="form-control form-control-lg" placeholder="{{ ziel }}">
+        <!-- ZIEL -->
+        <div class="col-12 col-md-3">
+            <div class="input-group input-group-lg">
+
+                <input type="text"
+                       name="ziel"
+                       id="ziel-input"
+                       class="form-control"
+                       placeholder="{{ ziel }}"
+                       required>
+
+                <!-- Standort-Button -->
+                <button id="location-toggle-ziel"
+                        class="btn btn-outline-secondary"
+                        type="button">📍</button>
+
+                <!-- Hidden Ziel -->
+                <input type="hidden" name="ziel_coords" id="ziel_coords_hidden">
+            </div>
         </div>
 
         <div class="col-6 col-md-2">
             <select name="profile" class="form-select form-select-lg">
-                <option value="driving-car">Auto</option>
-                <option value="cycling-regular">Fahrrad</option>
-                <option value="foot-walking">Zu Fuß</option>
+                <option value="driving-car" {% if profile == 'driving-car' %}selected{% endif %}>Auto</option>
+                <option value="cycling-regular" {% if profile == 'cycling-regular' %}selected{% endif %}>Fahrrad</option>
+                <option value="foot-walking" {% if profile == 'foot-walking' %}selected{% endif %}>Zu Fuß</option>
             </select>
         </div>
 
         <div class="col-6 col-md-auto">
             <button class="btn btn-primary btn-lg w-100" type="submit">Route anzeigen</button>
         </div>
+
     </form>
 </div>
 
@@ -104,15 +185,5 @@ War nicht schön blöde umrandung und alles
     {{ map_html | safe }}
 </div>
 
-<div>
-<p>Start: {{ start }} | Ziel: {{ ziel }} | Profil: {{ profile }}</p>
-<p>Start: {{ start }} | Ziel: {{ ziel }} | Profil: {{ profile }}</p>
-<p>Start: {{ start }} | Ziel: {{ ziel }} | Profil: {{ profile }}</p>
-
-</div>
-
-
-
 </body>
 </html>
-
