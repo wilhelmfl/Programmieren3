@@ -44,6 +44,90 @@
 </head>
 <body>
 
+<script>
+let startCoords = null;
+let zielCoords = null;
+
+window.addEventListener("DOMContentLoaded", function () {
+
+    // Buttons & Inputs
+    const startButton = document.getElementById("location-toggle");
+    const startInput = document.getElementById("start-input");
+    const zielButton = document.getElementById("location-toggle-ziel");
+    const zielInput = document.getElementById("ziel-input");
+
+    // Hidden Inputs für Koordinaten
+    const startHidden = document.createElement("input");
+    startHidden.type = "hidden";
+    startHidden.name = "start_coords";
+    startInput.parentNode.appendChild(startHidden);
+
+    const zielHidden = document.createElement("input");
+    zielHidden.type = "hidden";
+    zielHidden.name = "ziel_coords";
+    zielInput.parentNode.appendChild(zielHidden);
+
+    function getLocationAndFillInput(inputField, hiddenField, storeTarget) {
+    navigator.geolocation.getCurrentPosition(pos => {
+
+        const lat = pos.coords.latitude;
+        const lon = pos.coords.longitude;
+
+        // Sichtbar im Feld:
+        inputField.value = "Mein Standort";
+
+        // In das hidden Input speichern (damit Python es bekommt)
+        hiddenField.value = JSON.stringify({lat, lon});
+
+        // Und zusätzlich an den Server senden (für's Terminal)
+        fetch('/location', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({ lat, lon, target: storeTarget })
+        });
+
+    }, err => {
+        alert("Standort konnte nicht ermittelt werden.");
+    });
+}
+
+
+    // Start-Button
+    startButton.addEventListener("click", function () {
+        if (!startButton.classList.contains("btn-primary")) {
+            startButton.classList.add("btn-primary");
+            startButton.classList.remove("btn-outline-secondary");
+            getLocationAndFillInput(startInput, startHidden, "start");
+        } else {
+            startButton.classList.remove("btn-primary");
+            startButton.classList.add("btn-outline-secondary");
+            startInput.value = "";
+            startHidden.value = "";
+            startCoords = null;
+        }
+    });
+
+    // Ziel-Button
+    zielButton.addEventListener("click", function () {
+        if (!zielButton.classList.contains("btn-primary")) {
+            zielButton.classList.add("btn-primary");
+            zielButton.classList.remove("btn-outline-secondary");
+            getLocationAndFillInput(zielInput, zielHidden, "ziel");
+        } else {
+            zielButton.classList.remove("btn-primary");
+            zielButton.classList.add("btn-outline-secondary");
+            zielInput.value = "";
+            zielHidden.value = "";
+            zielCoords = null;
+        }
+    });
+
+});
+</script>
+
+
+
+
 <nav class="navbar navbar-expand-lg navbar-light bg-light navbar-form">
     <div class="container-fluid">
         <!-- Anzeige aktuelle Seite -->
@@ -66,17 +150,45 @@
     <h1>Route berechnen</h1>
 
     <form class="row g-2 align-items-center justify-content-center mt-4" action="/route" method="POST">
-        <div class="col-12 col-md-3">
-            <input type="text" name="start"
-                   class="form-control form-control-lg"
-                   placeholder="Startadresse" required>
-        </div>
+       
+     <div class="col-12 col-md-3">
+    <div class="input-group input-group-lg">
+
+        <!-- Eingabefeld -->
+        <input type="text"
+               name="start"
+               id="start-input"
+               class="form-control"
+               placeholder="Startadresse"
+               required>
+
+        <!-- Standort-Schalter rechts -->
+        <button id="location-toggle"
+                class="btn btn-outline-secondary"
+                type="button">
+            📍
+        </button>
+    </div>
+</div>
+
 
         <div class="col-12 col-md-3">
-            <input type="text" name="ziel"
-                   class="form-control form-control-lg"
-                   placeholder="Zieladresse" required>
-        </div>
+    <div class="input-group input-group-lg">
+
+        <input type="text"
+               name="ziel"
+               id="ziel-input"
+               class="form-control"
+               placeholder="Zieladresse"
+               required>
+
+        <button id="location-toggle-ziel"
+                class="btn btn-outline-secondary"
+                type="button">
+            📍
+        </button>
+    </div>
+</div>
 
         <div class="col-6 col-md-2">
             <select name="profile" class="form-select form-select-lg">
