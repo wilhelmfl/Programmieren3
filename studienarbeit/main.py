@@ -228,7 +228,7 @@ GEO_API_KEY = "c3575e31c8034abb8369480f3829584a"
 ORS_API_KEY = "eyJvcmciOiI1YjNjZTM1OTc4NTExMTAwMDFjZjYyNDgiLCJpZCI6ImJkZDQ5OWM3ZmM2NWI2ZmY2ZGVhYTRlMTdiOTk2YzZiOGNhYzVjZjRlNWE5YjVmZjBjMGM3NTRmIiwiaCI6Im11cm11cjY0In0="
 PROFILE_LABELS = {"driving-car": "Auto", "cycling-regular": "Fahrrad", "foot-walking": "zu Fuß"}
 
-# Geocoding + Route-Funktionen hier unverändert von deinem alten Code
+# Geocoding + Route-Funktionen
 def geocode_geoapify(address: str):
     url = "https://api.geoapify.com/v1/geocode/search"
     params = {"text": address, "apiKey": GEO_API_KEY, "format": "json"}
@@ -265,13 +265,12 @@ def get_route_ors(profile: str, start_lat, start_lon, end_lat, end_lon):
     return route_points, distance_m, duration_s
 
 
-# ----------------------------
-# Seiten
-# ----------------------------
 
 # Temporärer Speicher für aktuelle Koordinaten
 CURRENT_COORDS = {"start": None, "ziel": None}
 
+
+#standort aufrufen
 @app.route("/location", methods=["POST"])
 def location():
     global last_start_coords, last_ziel_coords
@@ -303,26 +302,22 @@ def route_ergebnis():
     profile = request.form.get("profile", "driving-car")
     profile_label = PROFILE_LABELS.get(profile, "Auto")
 
-    # --- START ---
+    #if abfrage ob mein standort im start eingabefeld steht
     if start_address == "Mein Standort" and last_start_coords:
         start_lat = last_start_coords["lat"]
         start_lon = last_start_coords["lon"]
     else:
         start_lat, start_lon = geocode_geoapify(start_address)
 
-    # --- ZIEL ---
+    #if abfrage ob mein standort im ziel eingabefeld steht
     if end_address == "Mein Standort" and last_ziel_coords:
         end_lat = last_ziel_coords["lat"]
         end_lon = last_ziel_coords["lon"]
     else:
         end_lat, end_lon = geocode_geoapify(end_address)
 
-    # --- JETZT NICHT MEHR überschreiben! ---
-    # Der folgende Block war falsch und wurde ENTFERNT:
-    # start_lat, start_lon = geocode_geoapify(start_address)
-    # end_lat, end_lon = geocode_geoapify(end_address)
 
-    # --- Route normal berechnen ---
+    #Route berechnen
     try:
         route_points, distance_m, duration_s = get_route_ors(profile, start_lat, start_lon, end_lat, end_lon)
         distance_km = distance_m / 1000.0
@@ -380,7 +375,9 @@ def route_ergebnis():
 
     return render_template('route.html', active_page='Routenplaner',
                            start=start_address, ziel=end_address,
-                           profile=profile, map_html=map_html)
+                           profile=profile, map_html=map_html,
+                           route_duration=duration_s)
+
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000, debug=True)
