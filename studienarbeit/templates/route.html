@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Route anzeigen</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
     <style>
         html, body {
             height: 100%;
@@ -41,69 +42,9 @@
 </head>
 <body>
 
-<script>
-// --- Standort-System wie auf der Startseite ---
-let startCoords = null;
-let zielCoords = null;
-
-window.addEventListener("DOMContentLoaded", function () {
-
-    // Inputs
-    const startInput = document.getElementById("start-input");
-    const zielInput = document.getElementById("ziel-input");
-
-    // Buttons
-    const startButton = document.getElementById("location-toggle-start");
-    const zielButton  = document.getElementById("location-toggle-ziel");
-
-    // Hidden Inputs
-    const startHidden = document.getElementById("start_coords_hidden");
-    const zielHidden  = document.getElementById("ziel_coords_hidden");
-
-    function getLocationAndFillInput(inputField, hiddenField, mode) {
-        navigator.geolocation.getCurrentPosition(pos => {
-
-            const lat = pos.coords.latitude;
-            const lon = pos.coords.longitude;
-
-            // Sichtbarer Text
-            inputField.value = "Mein Standort";
-
-            // Hidden Input füllen
-            hiddenField.value = JSON.stringify({lat, lon});
-
-            // auch an /location senden
-            fetch('/location', {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({ lat, lon, target: mode })
-            });
-
-        }, err => {
-            alert("Standort konnte nicht ermittelt werden.");
-        });
-    }
-
-    // Button Start
-    if (startButton) {
-        startButton.addEventListener("click", () => {
-            getLocationAndFillInput(startInput, startHidden, "start");
-            startButton.classList.add("btn-primary");
-        });
-    }
-
-    // Button Ziel
-    if (zielButton) {
-        zielButton.addEventListener("click", () => {
-            getLocationAndFillInput(zielInput, zielHidden, "ziel");
-            zielButton.classList.add("btn-primary");
-        });
-    }
-});
-</script>
-
 <nav class="navbar navbar-expand-lg navbar-light bg-light navbar-form">
     <div class="container-fluid">
+
         <span class="navbar-brand mb-0 h1">{{ active_page }}</span>
 
         <div class="collapse navbar-collapse justify-content-end">
@@ -111,60 +52,48 @@ window.addEventListener("DOMContentLoaded", function () {
                 <li class="nav-item">
                     <a class="nav-link {% if active_page == 'Routenplaner' %}active{% endif %}" href="/">Routenplaner</a>
                 </li>
+
                 <li class="nav-item">
                     <a class="nav-link {% if active_page == 'Infos' %}active{% endif %}" href="/infos">Infos</a>
                 </li>
             </ul>
         </div>
+
     </div>
 </nav>
 
-<!-- Formular -->
+
+<!-- Route-Formular -->
 <div class="route-form">
+
     <form action="/route" method="POST" class="row g-2 align-items-center">
 
-        <!-- START -->
+        <!-- Start -->
         <div class="col-12 col-md-3">
             <div class="input-group input-group-lg">
+                <input type="text" name="start" id="start-input"
+                       class="form-control" placeholder="{{ start }}" required>
 
-                <input type="text"
-                       name="start"
-                       id="start-input"
-                       class="form-control"
-                       placeholder="{{ start }}"
-                       required>
+                <button id="location-toggle-start" class="btn btn-outline-secondary" type="button">📍</button>
 
-                <!-- Standort-Button -->
-                <button id="location-toggle-start"
-                        class="btn btn-outline-secondary"
-                        type="button">📍</button>
-
-                <!-- Hidden Start -->
                 <input type="hidden" name="start_coords" id="start_coords_hidden">
             </div>
         </div>
 
-        <!-- ZIEL -->
+        <!-- Ziel -->
         <div class="col-12 col-md-3">
             <div class="input-group input-group-lg">
+                <input type="text" name="ziel" id="ziel-input"
+                       class="form-control" placeholder="{{ ziel }}" required>
 
-                <input type="text"
-                       name="ziel"
-                       id="ziel-input"
-                       class="form-control"
-                       placeholder="{{ ziel }}"
-                       required>
-
-                <!-- Standort-Button -->
                 <button id="location-toggle-ziel"
-                        class="btn btn-outline-secondary"
-                        type="button">📍</button>
+                        class="btn btn-outline-secondary" type="button">📍</button>
 
-                <!-- Hidden Ziel -->
                 <input type="hidden" name="ziel_coords" id="ziel_coords_hidden">
             </div>
         </div>
 
+        <!-- Reisemöglichkeit -->
         <div class="col-6 col-md-2">
             <select name="profile" class="form-select form-select-lg">
                 <option value="driving-car" {% if profile == 'driving-car' %}selected{% endif %}>Auto</option>
@@ -180,10 +109,169 @@ window.addEventListener("DOMContentLoaded", function () {
     </form>
 </div>
 
+
+
 <!-- Karte -->
 <div class="map-container">
     {{ map_html | safe }}
 </div>
+
+
+
+<div class="container mt-4" style="max-width: 1400px;">
+    <div class="row g-3">
+
+        <!-- zeit eingabe manuel oder über menü -->
+        <div class="col-12 col-md-4">
+            <label class="form-label fw-bold">Startzeit</label>
+
+            <div class="input-group input-group-lg">
+                <span class="input-group-text">🕒</span>
+
+                
+                <input type="time" id="startzeit" class="form-control">
+
+                <button id="zeit-jetzt" class="btn btn-outline-secondary">Jetzt</button>
+            </div>
+        </div>
+
+        <!-- Infobox unten rechts von der zeiteingabe -->
+        <div class="col-12 col-md-8">
+            <label class="form-label fw-bold">Routen-Informationen</label>
+
+            <div id="info-box" style="
+                background: white;
+                padding: 18px;
+                border-radius: 12px;
+                box-shadow: 0 0 10px rgba(0,0,0,0.2);
+                font-size: 1.1rem;
+                line-height: 1.5;
+            ">
+                <b>Route-Details</b><br>
+                Start: {{ start }}<br>
+                Ziel: {{ ziel }}<br>
+                Transportmittel: {{ profile }}<br>
+                Entfernung: {{ entfernung if entfernung else "wird berechnet…" }}<br>
+                Dauer: {{ dauer if dauer else "wird berechnet…" }}<br>
+                <span id="ankunftszeit-text"><b>Ankunft:</b> ––:––</span>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+
+<!-- Routen dauer -->
+<script id="route-data" type="application/json">
+    {{ route_duration|default(0)|tojson }}
+</script>
+<script>
+window.addEventListener("DOMContentLoaded", function () {
+
+    // Buttons & Inputs
+    const startButton = document.getElementById("location-toggle-start");
+    const startInput = document.getElementById("start-input");
+    const zielButton  = document.getElementById("location-toggle-ziel");
+    const zielInput   = document.getElementById("ziel-input");
+
+    // Hidden Inputs für Koordinaten
+    const startHidden = document.getElementById("start_coords_hidden");
+    const zielHidden  = document.getElementById("ziel_coords_hidden");
+
+    function getLocationAndFillInput(inputField, hiddenField) {
+        if (!navigator.geolocation) {
+            alert("Geolocation wird von Ihrem Browser nicht unterstützt.");
+            return;
+        }
+
+        navigator.geolocation.getCurrentPosition(pos => {
+            const { latitude, longitude } = pos.coords;
+
+            // Sichtbar im Feld:
+            inputField.value = "Mein Standort";
+
+            // Hidden Input für das Formular
+            hiddenField.value = JSON.stringify({ lat: latitude, lon: longitude });
+
+        }, err => {
+            alert("Standort konnte nicht ermittelt werden.");
+        });
+    }
+
+    // Start-Button Event
+    startButton.addEventListener("click", function () {
+        if (!startButton.classList.contains("btn-primary")) {
+            startButton.classList.add("btn-primary");
+            startButton.classList.remove("btn-outline-secondary");
+            getLocationAndFillInput(startInput, startHidden);
+        } else {
+            startButton.classList.remove("btn-primary");
+            startButton.classList.add("btn-outline-secondary");
+            startInput.value = "";
+            startHidden.value = "";
+        }
+    });
+
+    // Ziel-Button Event
+    zielButton.addEventListener("click", function () {
+        if (!zielButton.classList.contains("btn-primary")) {
+            zielButton.classList.add("btn-primary");
+            zielButton.classList.remove("btn-outline-secondary");
+            getLocationAndFillInput(zielInput, zielHidden);
+        } else {
+            zielButton.classList.remove("btn-primary");
+            zielButton.classList.add("btn-outline-secondary");
+            zielInput.value = "";
+            zielHidden.value = "";
+        }
+    });
+
+});
+</script>
+
+<script>
+const routeDurationSec = JSON.parse(
+    document.getElementById("route-data").textContent
+);
+
+const inputZeit   = document.getElementById("startzeit");
+const infoAnkunft = document.getElementById("ankunftszeit-text");
+
+/* jetz butten setzt aktuelle zeit */
+document.getElementById("zeit-jetzt").addEventListener("click", () => {
+    const now = new Date();
+    inputZeit.value =
+        String(now.getHours()).padStart(2, "0") + ":" +
+        String(now.getMinutes()).padStart(2, "0");
+
+    berechneAnkunft();
+});
+
+/* Ankunft berechnen */
+function berechneAnkunft() {
+    if (routeDurationSec === 0) return;
+    if (!inputZeit.value) return;
+
+    const [hh, mm] = inputZeit.value.split(":").map(v => parseInt(v));
+
+    const start = new Date();
+    start.setHours(hh);
+    start.setMinutes(mm);
+    start.setSeconds(0);
+
+    const ankunft = new Date(start.getTime() + routeDurationSec * 1000);
+
+    const ah = String(ankunft.getHours()).padStart(2, "0");
+    const am = String(ankunft.getMinutes()).padStart(2, "0");
+
+    infoAnkunft.innerHTML = "<b>Ankunft:</b> " + ah + ":" + am;
+}
+
+inputZeit.addEventListener("change", berechneAnkunft);
+
+/* automatischer erster Start */
+setTimeout(berechneAnkunft, 300);
+</script>
 
 </body>
 </html>
