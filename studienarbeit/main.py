@@ -1,4 +1,7 @@
-## Imports für Flask & DB
+#Test für Entwicklung in main mergen
+
+
+# Imports für Flask & DB
 #from flask import Flask, render_template, request
 #from flask_sqlalchemy import SQLAlchemy
 #from datetime import datetime, timezone
@@ -381,3 +384,5 @@ def route_ergebnis():
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000, debug=True)
+
+#rebase
