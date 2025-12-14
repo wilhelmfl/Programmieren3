@@ -377,8 +377,12 @@ def route_ergebnis():
     db.session.add(neue_route)
 
     return render_template('route.html', active_page='Routenplaner',
-                           start=start_address, ziel=end_address,
-                           profile=profile, map_html=map_html,
+                           start=start_address,
+                           ziel=end_address,
+                           profile=profile_label,
+                           distance_km=distance_km,
+                           dauer_text=dauer_text,
+                           map_html=map_html,
                            route_duration=duration_s)
 
 
