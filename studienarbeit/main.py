@@ -139,8 +139,8 @@ def route_ergebnis():
         center_lon = (start_lon + end_lon) / 2
         m = folium.Map(location=[center_lat, center_lon], zoom_start=12)
 
-        folium.Marker([start_lat, start_lon], popup="Start", tooltip=start_address).add_to(m)
-        folium.Marker([end_lat, end_lon], popup="Ziel", tooltip=end_address).add_to(m)
+        folium.Marker([start_lat, start_lon], popup="Start", tooltip=start_address, icon=folium.Icon(color="green", icon="play")).add_to(m)
+        folium.Marker([end_lat, end_lon], popup="Ziel", tooltip=end_address, icon=folium.Icon(color="red", icon="stop")).add_to(m)
         folium.PolyLine(route_points, color="blue", weight=5, opacity=0.8).add_to(m)
 
         # Auto-Zoom
