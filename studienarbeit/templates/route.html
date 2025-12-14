@@ -64,54 +64,71 @@
 
 
 <!-- Route-Formular -->
-<div class="route-form">
+<!-- Eingabeblock OBEN MITTIG -->
+<div class="container-fluid d-flex justify-content-center mt-4">
+    <div style="width: min(90vw, 1400px);">
 
-    <form action="/route" method="POST" class="row g-2 align-items-center">
+        <form action="/route" method="POST"
+              class="row g-2 align-items-center justify-content-center">
 
-        <!-- Start -->
-        <div class="col-12 col-md-3">
-            <div class="input-group input-group-lg">
-                <input type="text" name="start" id="start-input"
-                       class="form-control" placeholder="Startadresse"
-                        value="{{ start }}"
-                    required>
+            <!-- Start -->
+            <div class="col-12 col-md-3">
+                <div class="input-group input-group-lg">
+                    <input type="text"
+                           name="start"
+                           id="start-input"
+                           class="form-control"
+                           placeholder="Startadresse"
+                           value="{{ start }}"
+                           required>
 
-                <button id="location-toggle-start" class="btn btn-outline-secondary" type="button">📍</button>
+                    <button id="location-toggle-start"
+                            class="btn btn-outline-secondary"
+                            type="button">📍</button>
 
-                <input type="hidden" name="start_coords" id="start_coords_hidden">
+                    <input type="hidden" name="start_coords" id="start_coords_hidden">
+                </div>
             </div>
-        </div>
 
-        <!-- Ziel -->
-        <div class="col-12 col-md-3">
-            <div class="input-group input-group-lg">
-                <input type="text" name="ziel" id="ziel-input"
-                       class="form-control" placeholder="Zieladresse"
-                        value="{{ ziel }}"
-                    required>
+            <!-- Ziel -->
+            <div class="col-12 col-md-3">
+                <div class="input-group input-group-lg">
+                    <input type="text"
+                           name="ziel"
+                           id="ziel-input"
+                           class="form-control"
+                           placeholder="Zieladresse"
+                           value="{{ ziel }}"
+                           required>
 
-                <button id="location-toggle-ziel"
-                        class="btn btn-outline-secondary" type="button">📍</button>
+                    <button id="location-toggle-ziel"
+                            class="btn btn-outline-secondary"
+                            type="button">📍</button>
 
-                <input type="hidden" name="ziel_coords" id="ziel_coords_hidden">
+                    <input type="hidden" name="ziel_coords" id="ziel_coords_hidden">
+                </div>
             </div>
-        </div>
 
-        <!-- Reisemöglichkeit -->
-        <div class="col-6 col-md-2">
-            <select name="profile" class="form-select form-select-lg">
-                <option value="driving-car" {% if profile == 'driving-car' %}selected{% endif %}>Auto</option>
-                <option value="cycling-regular" {% if profile == 'cycling-regular' %}selected{% endif %}>Fahrrad</option>
-                <option value="foot-walking" {% if profile == 'foot-walking' %}selected{% endif %}>Zu Fuß</option>
-            </select>
-        </div>
+            <!-- Profil -->
+            <div class="col-6 col-md-2">
+                <select name="profile" class="form-select form-select-lg">
+                    <option value="driving-car" {% if profile == 'driving-car' %}selected{% endif %}>Auto</option>
+                    <option value="cycling-regular" {% if profile == 'cycling-regular' %}selected{% endif %}>Fahrrad</option>
+                    <option value="foot-walking" {% if profile == 'foot-walking' %}selected{% endif %}>Zu Fuß</option>
+                </select>
+            </div>
 
-        <div class="col-6 col-md-auto">
-            <button class="btn btn-primary btn-lg w-100" type="submit">Route anzeigen</button>
-        </div>
+            <!-- Button -->
+            <div class="col-6 col-md-auto">
+                <button class="btn btn-primary btn-lg w-100" type="submit">
+                    Route anzeigen
+                </button>
+            </div>
 
-    </form>
+        </form>
+    </div>
 </div>
+
 
 
 
