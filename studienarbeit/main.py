@@ -126,6 +126,8 @@ def route_ergebnis():
     try:
         route_points, distance_m, duration_s = get_route_ors(profile, start_lat, start_lon, end_lat, end_lon)
         distance_km = distance_m / 1000.0
+        distance_km_zwei = round(distance_km, 2)
+        
         total_minutes = int(round(duration_s / 60.0))
         if total_minutes >= 60:
             hours = total_minutes // 60
@@ -165,7 +167,7 @@ def route_ergebnis():
                            start=start_address,
                            ziel=end_address,
                            profile=profile_label,
-                           distance_km=distance_km,
+                           distance_km=distance_km_zwei,
                            dauer_text=dauer_text,
                            map_html=map_html,
                            route_duration=duration_s)
