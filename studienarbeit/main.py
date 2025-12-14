@@ -348,24 +348,7 @@ def route_ergebnis():
         m.fit_bounds(bounds)
 
         info_html = f"""
-        <div style="
-            position: absolute;
-            top: 75px;
-            left: 12px;
-            z-index: 9999;
-            background-color: white;
-            padding: 12px 18px;
-            border-radius: 10px;
-            box-shadow: 0 0 10px rgba(0,0,0,0.3);
-            font-size: clamp(0.95rem, 0.5vw + 0.6rem, 1.15rem);
-            line-height: 1.4;
-        ">
-            <b>Route-Info ({profile_label})</b><br>
-            Start: {start_address}<br>
-            Ziel: {end_address}<br>
-            Entfernung: {distance_km:.2f} km<br>
-            Dauer: {dauer_text}
-        </div>
+        
         """
         m.get_root().html.add_child(folium.Element(info_html))
         map_html = m.get_root().render()
