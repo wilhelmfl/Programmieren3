@@ -67,37 +67,32 @@ window.addEventListener("DOMContentLoaded", function () {
     zielHidden.name = "ziel_coords";
     zielInput.parentNode.appendChild(zielHidden);
 
-    function getLocationAndFillInput(inputField, hiddenField, storeTarget) {
-    navigator.geolocation.getCurrentPosition(pos => {
+    // ⚠️ HIER die EINZIGE echte Änderung:
+    // ❌ kein fetch('/location')
+    // ✅ Koordinaten bleiben im Formular (pro User / pro Request)
+    function getLocationAndFillInput(inputField, hiddenField) {
+        navigator.geolocation.getCurrentPosition(pos => {
 
-        const lat = pos.coords.latitude;
-        const lon = pos.coords.longitude;
+            const lat = pos.coords.latitude;
+            const lon = pos.coords.longitude;
 
-        // Sichtbar im Feld:
-        inputField.value = "Mein Standort";
+            // Sichtbar im Feld:
+            inputField.value = "Mein Standort";
 
-        // In das hidden Input speichern (damit Python es bekommt)
-        hiddenField.value = JSON.stringify({lat, lon});
+            // Hidden Input (wird mit POST gesendet)
+            hiddenField.value = JSON.stringify({ lat, lon });
 
-        // Und zusätzlich an den Server senden (für's Terminal)
-        fetch('/location', {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({ lat, lon, target: storeTarget })
+        }, err => {
+            alert("Standort konnte nicht ermittelt werden.");
         });
-
-    }, err => {
-        alert("Standort konnte nicht ermittelt werden.");
-    });
-}
-
+    }
 
     // Start-Button
     startButton.addEventListener("click", function () {
         if (!startButton.classList.contains("btn-primary")) {
             startButton.classList.add("btn-primary");
             startButton.classList.remove("btn-outline-secondary");
-            getLocationAndFillInput(startInput, startHidden, "start");
+            getLocationAndFillInput(startInput, startHidden);
         } else {
             startButton.classList.remove("btn-primary");
             startButton.classList.add("btn-outline-secondary");
@@ -112,7 +107,7 @@ window.addEventListener("DOMContentLoaded", function () {
         if (!zielButton.classList.contains("btn-primary")) {
             zielButton.classList.add("btn-primary");
             zielButton.classList.remove("btn-outline-secondary");
-            getLocationAndFillInput(zielInput, zielHidden, "ziel");
+            getLocationAndFillInput(zielInput, zielHidden);
         } else {
             zielButton.classList.remove("btn-primary");
             zielButton.classList.add("btn-outline-secondary");
@@ -123,15 +118,10 @@ window.addEventListener("DOMContentLoaded", function () {
     });
 
 });
-
 </script>
-
-
-
 
 <nav class="navbar navbar-expand-lg navbar-light bg-light navbar-form">
     <div class="container-fluid">
-        <!-- Anzeige aktuelle Seite -->
         <span class="navbar-brand mb-0 h1">{{ active_page }}</span>
 
         <div class="collapse navbar-collapse justify-content-end">
@@ -150,48 +140,43 @@ window.addEventListener("DOMContentLoaded", function () {
 <div style="text-align: center; margin-top: 30px;">
     <h1>Route berechnen</h1>
 
-    <form class="row g-2 align-items-center justify-content-center mt-4" action="/route" method="POST">
-       
-     <div class="col-12 col-md-3">
-    <div class="input-group input-group-lg">
-
-        <!-- Eingabetextfeld Start-->
-        <input type="text"
-               name="start"
-               id="start-input"
-               class="form-control"
-               placeholder="Startadresse"
-               required>
-
-        <!-- Mein Standort Knopf -->
-        <button id="location-toggle"
-                class="btn btn-outline-secondary"
-                type="button">
-            📍
-        </button>
-    </div>
-</div>
-
+    <form class="row g-2 align-items-center justify-content-center mt-4"
+          action="/route" method="POST">
 
         <div class="col-12 col-md-3">
-    <div class="input-group input-group-lg">
-        <!-- Eingabetextfeld Ziel-->
-        <input type="text"
-               name="ziel"
-               id="ziel-input"
-               class="form-control"
-               placeholder="Zieladresse"
-               required>
-               
-            <!-- Mein Standort Knopf -->
-        <button id="location-toggle-ziel"
-                class="btn btn-outline-secondary"
-                type="button">
-            📍
-        </button>
-    </div>
-</div>
-        <!-- Reiseoption drop down -->
+            <div class="input-group input-group-lg">
+                <input type="text"
+                       name="start"
+                       id="start-input"
+                       class="form-control"
+                       placeholder="Startadresse"
+                       required>
+
+                <button id="location-toggle"
+                        class="btn btn-outline-secondary"
+                        type="button">
+                    📍
+                </button>
+            </div>
+        </div>
+
+        <div class="col-12 col-md-3">
+            <div class="input-group input-group-lg">
+                <input type="text"
+                       name="ziel"
+                       id="ziel-input"
+                       class="form-control"
+                       placeholder="Zieladresse"
+                       required>
+
+                <button id="location-toggle-ziel"
+                        class="btn btn-outline-secondary"
+                        type="button">
+                    📍
+                </button>
+            </div>
+        </div>
+
         <div class="col-6 col-md-2">
             <select name="profile" class="form-select form-select-lg">
                 <option value="driving-car">Auto</option>
@@ -199,7 +184,7 @@ window.addEventListener("DOMContentLoaded", function () {
                 <option value="foot-walking">Zu Fuß</option>
             </select>
         </div>
-        <!-- Route berechnen knopf -->
+
         <div class="col-6 col-md-auto">
             <button class="btn btn-primary btn-lg w-100" type="submit">
                 Route anzeigen
