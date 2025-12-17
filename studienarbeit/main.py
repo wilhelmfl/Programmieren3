@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request
+from flask import Flask, render_template, request, jsonify
 from datetime import datetime, timezone
 import folium
 import requests
@@ -57,6 +57,64 @@ def get_route_ors(profile: str, start_lat, start_lon, end_lat, end_lon):
     route_points = [(lat, lon) for lon, lat in coords]
 
     return route_points, distance_m, duration_s
+
+
+@app.route("/autocomplete")
+def autocomplete():
+    query = request.args.get("q", "")
+    if len(query) < 2:
+        return jsonify([])  # Mindestens 2 Buchstaben
+
+    url = "https://nominatim.openstreetmap.org/search"
+    params = {
+        "q": query,
+        "format": "json",
+        "addressdetails": 1,
+        "limit": 5,
+    }
+
+    # ✅ User-Agent gesetzt + Timeout
+    headers = {
+        "Accept-Language": "de",
+        "User-Agent": "MeinRoutenplaner/1.0 (meine.email@domain.de)"
+    }
+
+    try:
+        r = requests.get(url, params=params, headers=headers, timeout=10)
+        r.raise_for_status()  # HTTP Fehler abfangen
+        results = r.json()    # JSON dekodieren
+    except requests.RequestException as e:
+        print("Request-Fehler:", e)
+        return jsonify([])
+    except ValueError as e:  # JSONDecodeError
+        print("Fehler beim Dekodieren von JSON:", e)
+        return jsonify([])
+
+    suggestions = []
+    for item in results:
+        city = (
+            item["address"].get("city")
+            or item["address"].get("town")
+            or item["address"].get("village")
+            or item["address"].get("hamlet")
+            or item["address"].get("county")
+        )
+        state = item["address"].get("state")
+        if city and state:
+            label = f"{city}, {state}"
+        elif city:
+            label = city
+        else:
+            continue
+
+        suggestions.append({
+            "label": label,
+            "lat": item["lat"],
+            "lon": item["lon"]
+        })
+
+    return jsonify(suggestions)
+
 
 @app.route("/")
 def routenplaner():
