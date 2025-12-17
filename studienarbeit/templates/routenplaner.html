@@ -56,7 +56,7 @@ window.addEventListener("DOMContentLoaded", function () {
     const zielButton = document.getElementById("location-toggle-ziel");
     const zielInput = document.getElementById("ziel-input");
 
-    // Hidden Inputs für Koordinaten
+    // Hidden Inputs für Koordinaten (werden mit dem Formular gesendet)
     const startHidden = document.createElement("input");
     startHidden.type = "hidden";
     startHidden.name = "start_coords";
@@ -67,19 +67,16 @@ window.addEventListener("DOMContentLoaded", function () {
     zielHidden.name = "ziel_coords";
     zielInput.parentNode.appendChild(zielHidden);
 
-    // ⚠️ HIER die EINZIGE echte Änderung:
-    // ❌ kein fetch('/location')
-    // ✅ Koordinaten bleiben im Formular (pro User / pro Request)
     function getLocationAndFillInput(inputField, hiddenField) {
         navigator.geolocation.getCurrentPosition(pos => {
 
             const lat = pos.coords.latitude;
             const lon = pos.coords.longitude;
 
-            // Sichtbar im Feld:
+            // Sichtbar im Feld
             inputField.value = "Mein Standort";
 
-            // Hidden Input (wird mit POST gesendet)
+            // Pro User / pro Request
             hiddenField.value = JSON.stringify({ lat, lon });
 
         }, err => {
@@ -96,7 +93,12 @@ window.addEventListener("DOMContentLoaded", function () {
         } else {
             startButton.classList.remove("btn-primary");
             startButton.classList.add("btn-outline-secondary");
-            startInput.value = "";
+
+            // ✅ NUR löschen, wenn wirklich "Mein Standort" drinsteht
+            if (startInput.value === "Mein Standort") {
+                startInput.value = "";
+            }
+
             startHidden.value = "";
             startCoords = null;
         }
@@ -111,7 +113,12 @@ window.addEventListener("DOMContentLoaded", function () {
         } else {
             zielButton.classList.remove("btn-primary");
             zielButton.classList.add("btn-outline-secondary");
-            zielInput.value = "";
+
+            // ✅ NUR löschen, wenn wirklich "Mein Standort" drinsteht
+            if (zielInput.value === "Mein Standort") {
+                zielInput.value = "";
+            }
+
             zielHidden.value = "";
             zielCoords = null;
         }
@@ -122,6 +129,7 @@ window.addEventListener("DOMContentLoaded", function () {
 
 <nav class="navbar navbar-expand-lg navbar-light bg-light navbar-form">
     <div class="container-fluid">
+        <!-- Anzeige aktuelle Seite -->
         <span class="navbar-brand mb-0 h1">{{ active_page }}</span>
 
         <div class="collapse navbar-collapse justify-content-end">
