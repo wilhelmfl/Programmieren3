@@ -123,6 +123,32 @@ window.addEventListener("DOMContentLoaded", function () {
     });
 
 });
+
+async function autocomplete(input) {
+    const value = input.value;
+    if (value.length < 3) return;
+
+    const res = await fetch(
+        `https://api.geoapify.com/v1/geocode/autocomplete?text=${value}&lang=de&limit=5&apiKey=DEIN_API_KEY`
+    );
+    const data = await res.json();
+
+    let list = document.getElementById(input.id + "-list");
+    list.innerHTML = "";
+
+    data.features.forEach(f => {
+        const item = document.createElement("div");
+        item.className = "list-group-item list-group-item-action";
+        item.innerText = f.properties.formatted;
+        item.onclick = () => {
+            input.value = f.properties.formatted;
+            list.innerHTML = "";
+        };
+        list.appendChild(item);
+    });
+}
+
+
 </script>
 
 
@@ -181,6 +207,10 @@ window.addEventListener("DOMContentLoaded", function () {
                class="form-control"
                placeholder="Zieladresse"
                required>
+               oninput="autocomplete(this)">
+               <div id="start-input-list"
+                class="list-group position-absolute w-100"
+                style="z-index: 1000;"></div>
             <!-- Mein Standort Knopf -->
         <button id="location-toggle-ziel"
                 class="btn btn-outline-secondary"
