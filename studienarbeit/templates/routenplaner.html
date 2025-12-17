@@ -48,6 +48,9 @@
 let startCoords = null;
 let zielCoords = null;
 
+let watchIdStart = null;
+let watchIdZiel = null;
+
 window.addEventListener("DOMContentLoaded", function () {
 
     // Buttons & Inputs
@@ -56,7 +59,7 @@ window.addEventListener("DOMContentLoaded", function () {
     const zielButton = document.getElementById("location-toggle-ziel");
     const zielInput = document.getElementById("ziel-input");
 
-    // Hidden Inputs für Koordinaten
+    // Hidden Inputs für Koordinaten (werden mit dem Formular gesendet)
     const startHidden = document.createElement("input");
     startHidden.type = "hidden";
     startHidden.name = "start_coords";
@@ -67,41 +70,59 @@ window.addEventListener("DOMContentLoaded", function () {
     zielHidden.name = "ziel_coords";
     zielInput.parentNode.appendChild(zielHidden);
 
-    function getLocationAndFillInput(inputField, hiddenField, storeTarget) {
-    navigator.geolocation.getCurrentPosition(pos => {
+    function startWatchLocation(inputField, hiddenField) {
+        if (!navigator.geolocation) {
+            alert("Geolocation wird von Ihrem Browser nicht unterstützt.");
+            return null;
+        }
 
-        const lat = pos.coords.latitude;
-        const lon = pos.coords.longitude;
+        return navigator.geolocation.watchPosition(pos => {
+            const lat = pos.coords.latitude;
+            const lon = pos.coords.longitude;
 
-        // Sichtbar im Feld:
-        inputField.value = "Mein Standort";
+            // Sichtbar im Feld
+            inputField.value = "Mein Standort";
 
-        // In das hidden Input speichern (damit Python es bekommt)
-        hiddenField.value = JSON.stringify({lat, lon});
+            // Pro User / pro Request
+            hiddenField.value = JSON.stringify({ lat, lon });
 
-        // Und zusätzlich an den Server senden (für's Terminal)
-        fetch('/location', {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({ lat, lon, target: storeTarget })
+        }, err => {
+            alert("Standort konnte nicht ermittelt werden.");
+        }, {
+            enableHighAccuracy: true,
+            maximumAge: 2000,
+            timeout: 10000
         });
+    }
 
-    }, err => {
-        alert("Standort konnte nicht ermittelt werden.");
-    });
-}
-
+    function stopWatchLocation(watchId) {
+        if (watchId !== null) {
+            navigator.geolocation.clearWatch(watchId);
+        }
+    }
 
     // Start-Button
     startButton.addEventListener("click", function () {
         if (!startButton.classList.contains("btn-primary")) {
             startButton.classList.add("btn-primary");
             startButton.classList.remove("btn-outline-secondary");
-            getLocationAndFillInput(startInput, startHidden, "start");
+
+            // Start-Tracking
+            watchIdStart = startWatchLocation(startInput, startHidden);
+
         } else {
             startButton.classList.remove("btn-primary");
             startButton.classList.add("btn-outline-secondary");
-            startInput.value = "";
+
+            // Stop-Tracking
+            stopWatchLocation(watchIdStart);
+            watchIdStart = null;
+
+            // NUR löschen, wenn wirklich "Mein Standort" drinsteht
+            if (startInput.value === "Mein Standort") {
+                startInput.value = "";
+            }
+
             startHidden.value = "";
             startCoords = null;
         }
@@ -112,11 +133,20 @@ window.addEventListener("DOMContentLoaded", function () {
         if (!zielButton.classList.contains("btn-primary")) {
             zielButton.classList.add("btn-primary");
             zielButton.classList.remove("btn-outline-secondary");
-            getLocationAndFillInput(zielInput, zielHidden, "ziel");
+
+            watchIdZiel = startWatchLocation(zielInput, zielHidden);
+
         } else {
             zielButton.classList.remove("btn-primary");
             zielButton.classList.add("btn-outline-secondary");
-            zielInput.value = "";
+
+            stopWatchLocation(watchIdZiel);
+            watchIdZiel = null;
+
+            if (zielInput.value === "Mein Standort") {
+                zielInput.value = "";
+            }
+
             zielHidden.value = "";
             zielCoords = null;
         }
@@ -124,10 +154,63 @@ window.addEventListener("DOMContentLoaded", function () {
 
 });
 </script>
+<script>
+const setupAutocomplete = (inputField, hiddenField) => {
+    let timer;
+    const dropdown = document.createElement("ul");
+    dropdown.style.position = "absolute";
+    dropdown.style.backgroundColor = "white";
+    dropdown.style.border = "1px solid #ccc";
+    dropdown.style.listStyle = "none";
+    dropdown.style.padding = "0";
+    dropdown.style.margin = "0";
+    dropdown.style.maxHeight = "150px";
+    dropdown.style.overflowY = "auto";
+    dropdown.style.zIndex = "1000";
+    dropdown.style.width = inputField.offsetWidth + "px";
+    inputField.parentNode.style.position = "relative";
+    inputField.parentNode.appendChild(dropdown);
 
+    inputField.addEventListener("input", () => {
+        clearTimeout(timer);
+        const query = inputField.value;
+        if (query.length < 2) {
+            dropdown.innerHTML = "";
+            return;
+        }
 
+        timer = setTimeout(async () => {
+            const res = await fetch(`/autocomplete?q=${encodeURIComponent(query)}`);
+            const data = await res.json();
+            dropdown.innerHTML = "";
 
+            data.forEach(item => {
+                const li = document.createElement("li");
+                li.textContent = item.label;
+                li.style.padding = "5px 10px";
+                li.style.cursor = "pointer";
 
+                li.addEventListener("click", () => {
+                    inputField.value = item.label;
+                    hiddenField.value = JSON.stringify({ lat: item.lat, lon: item.lon });
+                    dropdown.innerHTML = "";
+                });
+
+                dropdown.appendChild(li);
+            });
+        }, 300);
+    });
+
+    document.addEventListener("click", (e) => {
+        if (!inputField.contains(e.target)) dropdown.innerHTML = "";
+    });
+};
+
+document.addEventListener("DOMContentLoaded", () => {
+    setupAutocomplete(document.getElementById("start-input"), document.getElementById("start_coords_hidden"));
+    setupAutocomplete(document.getElementById("ziel-input"), document.getElementById("ziel_coords_hidden"));
+});
+</script>
 <nav class="navbar navbar-expand-lg navbar-light bg-light navbar-form">
     <div class="container-fluid">
         <!-- Anzeige aktuelle Seite -->
@@ -149,47 +232,41 @@ window.addEventListener("DOMContentLoaded", function () {
 <div style="text-align: center; margin-top: 30px;">
     <h1>Route berechnen</h1>
 
-    <form class="row g-2 align-items-center justify-content-center mt-4" action="/route" method="POST">
-       
-     <div class="col-12 col-md-3">
-    <div class="input-group input-group-lg">
-
-        <!-- Eingabetextfeld Start-->
-        <input type="text"
-               name="start"
-               id="start-input"
-               class="form-control"
-               placeholder="Startadresse"
-               required>
-
-        <!-- Mein Standort Knopf -->
-        <button id="location-toggle"
-                class="btn btn-outline-secondary"
-                type="button">
-            📍
-        </button>
-    </div>
-</div>
-
+    <form class="row g-2 align-items-center justify-content-center mt-4"
+          action="/route" method="POST">
 
         <div class="col-12 col-md-3">
-    <div class="input-group input-group-lg">
-        <!-- Eingabetextfeld Ziel-->
-        <input type="text"
-               name="ziel"
-               id="ziel-input"
-               class="form-control"
-               placeholder="Zieladresse"
-               required>
-            <!-- Mein Standort Knopf -->
-        <button id="location-toggle-ziel"
-                class="btn btn-outline-secondary"
-                type="button">
-            📍
-        </button>
-    </div>
-</div>
-        <!-- Reiseoption drop down -->
+            <div class="input-group input-group-lg">
+                <input type="text"
+                       name="start"
+                       id="start-input"
+                       class="form-control"
+                       placeholder="Startadresse"
+                       required>
+                <button id="location-toggle"
+                        class="btn btn-outline-secondary"
+                        type="button">
+                    📍
+                </button>
+            </div>
+        </div>
+
+        <div class="col-12 col-md-3">
+            <div class="input-group input-group-lg">
+                <input type="text"
+                       name="ziel"
+                       id="ziel-input"
+                       class="form-control"
+                       placeholder="Zieladresse"
+                       required>
+                <button id="location-toggle-ziel"
+                        class="btn btn-outline-secondary"
+                        type="button">
+                    📍
+                </button>
+            </div>
+        </div>
+
         <div class="col-6 col-md-2">
             <select name="profile" class="form-select form-select-lg">
                 <option value="driving-car">Auto</option>
@@ -197,7 +274,7 @@ window.addEventListener("DOMContentLoaded", function () {
                 <option value="foot-walking">Zu Fuß</option>
             </select>
         </div>
-        <!-- Route berechnen knopf -->
+
         <div class="col-6 col-md-auto">
             <button class="btn btn-primary btn-lg w-100" type="submit">
                 Route anzeigen
@@ -205,6 +282,7 @@ window.addEventListener("DOMContentLoaded", function () {
         </div>
     </form>
 </div>
+
 
 </body>
 </html>

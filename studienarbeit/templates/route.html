@@ -48,7 +48,7 @@ html, body {
 
 </head>
 <body>
-
+<!--leiste oben bei der man zwischen routenplaner und infos wechseln kann-->
 <nav class="navbar navbar-expand-lg navbar-light bg-light navbar-form">
     <div class="container-fluid">
 
@@ -70,15 +70,14 @@ html, body {
 </nav>
 
 
-<!-- Route-Formular -->
-<!-- Eingabeblock OBEN MITTIG -->
+
 <div class="container-fluid d-flex justify-content-center mt-4">
     <div style="width: min(90vw, 1400px);">
 
         <form action="/route" method="POST"
               class="row g-2 align-items-center justify-content-center">
 
-            <!-- Start -->
+            <!-- Startfeld mit knopf rechts -->
             <div class="col-12 col-md-3">
                 <div class="input-group input-group-lg">
                     <input type="text"
@@ -88,16 +87,16 @@ html, body {
                            placeholder="Startadresse"
                            value="{{ start }}"
                            required>
-
+                         <!-- knopf  -->   
                     <button id="location-toggle-start"
                             class="btn btn-outline-secondary"
                             type="button">📍</button>
-
+                        <!-- startkoordinatenüberabe wenn mein standort gedrückt wird -->
                     <input type="hidden" name="start_coords" id="start_coords_hidden">
                 </div>
             </div>
 
-            <!-- Ziel -->
+            <!-- Ziel mit knopf rechts -->
             <div class="col-12 col-md-3">
                 <div class="input-group input-group-lg">
                     <input type="text"
@@ -111,12 +110,12 @@ html, body {
                     <button id="location-toggle-ziel"
                             class="btn btn-outline-secondary"
                             type="button">📍</button>
-
+                        <!-- zielkoordinatenüberabe wenn mein standort gedrückt wird -->
                     <input type="hidden" name="ziel_coords" id="ziel_coords_hidden">
                 </div>
             </div>
 
-            <!-- Profil -->
+            <!-- auswahl fortbewegungsmittel -->
             <div class="col-6 col-md-2">
                 <select name="profile" class="form-select form-select-lg">
                     <option value="driving-car" {% if profile == 'driving-car' %}selected{% endif %}>Auto</option>
@@ -125,7 +124,7 @@ html, body {
                 </select>
             </div>
 
-            <!-- Button -->
+            <!-- knopf zum routen planen -->
             <div class="col-6 col-md-auto">
                 <button class="btn btn-primary btn-lg w-100" type="submit">
                     Route anzeigen
@@ -136,15 +135,10 @@ html, body {
     </div>
 </div>
 
-
-
-
 <!-- Karte -->
 <div class="map-container">
     {{ map_html | safe }}
 </div>
-
-
 
 <div class="container mt-4" style="max-width: 1400px;">
     <div class="row g-3">
@@ -155,10 +149,7 @@ html, body {
 
             <div class="input-group input-group-lg">
                 <span class="input-group-text">🕒</span>
-
-                
                 <input type="time" id="startzeit" class="form-control">
-
                 <button id="zeit-jetzt" class="btn btn-outline-secondary">Jetzt</button>
             </div>
         </div>
@@ -178,7 +169,7 @@ html, body {
                 <b>Route-Details</b><br>
                 Start: {{ start }}<br>
                 Ziel: {{ ziel }}<br>
-                Transportmittel: {{ profile }}<br>
+                Transportmittel: {{ profile_label }}<br>
                 Entfernung: {{ distance_km }} km<br>
                 Dauer: {{ dauer_text }}<br>
                 <span id="ankunftszeit-text"><b>Ankunft:</b> ––:––</span>
@@ -188,71 +179,108 @@ html, body {
     </div>
 </div>
 
-
 <!-- Routen dauer -->
 <script id="route-data" type="application/json">
     {{ route_duration|default(0)|tojson }}
 </script>
+
 <script>
 window.addEventListener("DOMContentLoaded", function () {
-
-    // Buttons & Inputs
+// bekannt machen der felder und buttons für js
     const startButton = document.getElementById("location-toggle-start");
     const startInput = document.getElementById("start-input");
     const zielButton  = document.getElementById("location-toggle-ziel");
     const zielInput   = document.getElementById("ziel-input");
 
-    // Hidden Inputs für Koordinaten
     const startHidden = document.getElementById("start_coords_hidden");
     const zielHidden  = document.getElementById("ziel_coords_hidden");
 
-    function getLocationAndFillInput(inputField, hiddenField) {
+    //id für denbrowser zum standort abrufen
+    let watchIdStart = null;
+    let watchIdZiel = null;
+
+    //standort abrufen funktion
+    function startWatchLocation(inputField, hiddenField) {
         if (!navigator.geolocation) {
             alert("Geolocation wird von Ihrem Browser nicht unterstützt.");
-            return;
+            return null;
         }
-
-        navigator.geolocation.getCurrentPosition(pos => {
+        // standort wird übergeben, "Mein standort" in das eingabefeld übergeben
+        return navigator.geolocation.watchPosition(pos => {
             const { latitude, longitude } = pos.coords;
 
-            // Sichtbar im Feld:
             inputField.value = "Mein Standort";
-
-            // Hidden Input für das Formular
             hiddenField.value = JSON.stringify({ lat: latitude, lon: longitude });
 
         }, err => {
             alert("Standort konnte nicht ermittelt werden.");
+        }, {//einstellungen für die funktion
+            enableHighAccuracy: true,
+            maximumAge: 2000,
+            timeout: 10000
         });
     }
+//stoppt das dauernde abrufen des standorts
+    function stopWatchLocation(watchId) {
+        if (watchId !== null) {
+            navigator.geolocation.clearWatch(watchId);
+        }
+    }
 
-    // Start-Button Event
     startButton.addEventListener("click", function () {
         if (!startButton.classList.contains("btn-primary")) {
             startButton.classList.add("btn-primary");
             startButton.classList.remove("btn-outline-secondary");
-            getLocationAndFillInput(startInput, startHidden);
+
+            
+            watchIdStart = startWatchLocation(startInput, startHidden);
+
         } else {
             startButton.classList.remove("btn-primary");
             startButton.classList.add("btn-outline-secondary");
-            startInput.value = "";
+
+            
+            stopWatchLocation(watchIdStart);
+            watchIdStart = null;
+
+            if (startInput.value === "Mein Standort") {
+                startInput.value = "";
+            }
+
             startHidden.value = "";
         }
     });
 
-    // Ziel-Button Event
     zielButton.addEventListener("click", function () {
+
+        
+        if (watchIdStart !== null) {
+            stopWatchLocation(watchIdStart);
+         watchIdStart = null;
+            startButton.classList.remove("btn-primary");
+            startButton.classList.add("btn-outline-secondary");
+        }
+
         if (!zielButton.classList.contains("btn-primary")) {
             zielButton.classList.add("btn-primary");
             zielButton.classList.remove("btn-outline-secondary");
-            getLocationAndFillInput(zielInput, zielHidden);
+
+            watchIdZiel = startWatchLocation(zielInput, zielHidden);
+
         } else {
             zielButton.classList.remove("btn-primary");
             zielButton.classList.add("btn-outline-secondary");
-            zielInput.value = "";
+
+            stopWatchLocation(watchIdZiel);
+            watchIdZiel = null;
+
+            if (zielInput.value === "Mein Standort") {
+                zielInput.value = "";
+            }
             zielHidden.value = "";
         }
     });
+
 
 });
 </script>
@@ -265,7 +293,6 @@ const routeDurationSec = JSON.parse(
 const inputZeit   = document.getElementById("startzeit");
 const infoAnkunft = document.getElementById("ankunftszeit-text");
 
-/* jetz butten setzt aktuelle zeit */
 document.getElementById("zeit-jetzt").addEventListener("click", () => {
     const now = new Date();
     inputZeit.value =
@@ -274,8 +301,7 @@ document.getElementById("zeit-jetzt").addEventListener("click", () => {
 
     berechneAnkunft();
 });
-
-/* Ankunft berechnen */
+//ankunstberechnung
 function berechneAnkunft() {
     if (routeDurationSec === 0) return;
     if (!inputZeit.value) return;
@@ -296,8 +322,6 @@ function berechneAnkunft() {
 }
 
 inputZeit.addEventListener("change", berechneAnkunft);
-
-/* automatischer erster Start */
 setTimeout(berechneAnkunft, 300);
 </script>
 
