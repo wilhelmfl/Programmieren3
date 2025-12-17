@@ -1,5 +1,5 @@
 from flask import Flask, render_template, request
-from flask_sqlalchemy import SQLAlchemy
+
 from datetime import datetime, timezone
 import folium
 import requests
@@ -11,21 +11,6 @@ app = Flask(__name__)
 last_start_coords = None
 last_ziel_coords = None
 
-# DB Konfiguration
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///db.db'
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-db = SQLAlchemy(app)
-
-class Route(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    user = db.Column(db.String(120))
-    start_address = db.Column(db.String(255))
-    end_address = db.Column(db.String(255))
-    profile = db.Column(db.String(50))
-    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
-
-with app.app_context():
-    db.create_all()
 
 # API-Keys und Labels
 GEO_API_KEY = "c3575e31c8034abb8369480f3829584a"
