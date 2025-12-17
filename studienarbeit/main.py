@@ -1,5 +1,4 @@
 from flask import Flask, render_template, request
-
 from datetime import datetime, timezone
 import folium
 import requests
@@ -134,8 +133,8 @@ def route_ergebnis():
         active_page="Routenplaner",
         start=start_address,
         ziel=end_address,
-        profile=profile,               # ✅ Code (driving-car)
-        profile_label=profile_label,   # ✅ Label (Auto)
+        profile=profile,               
+        profile_label=profile_label,   
         distance_km=distance_km_zwei,
         dauer_text=dauer_text,
         map_html=map_html,
