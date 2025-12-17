@@ -196,11 +196,9 @@ window.addEventListener("DOMContentLoaded", function () {
     const startHidden = document.getElementById("start_coords_hidden");
     const zielHidden  = document.getElementById("ziel_coords_hidden");
 
-    // ✅ NEU: watch ids
     let watchIdStart = null;
     let watchIdZiel = null;
 
-    // ✅ Geändert: watchPosition statt getCurrentPosition
     function startWatchLocation(inputField, hiddenField) {
         if (!navigator.geolocation) {
             alert("Geolocation wird von Ihrem Browser nicht unterstützt.");
@@ -233,14 +231,14 @@ window.addEventListener("DOMContentLoaded", function () {
             startButton.classList.add("btn-primary");
             startButton.classList.remove("btn-outline-secondary");
 
-            // ✅ Start tracking
+            //Start tracking
             watchIdStart = startWatchLocation(startInput, startHidden);
 
         } else {
             startButton.classList.remove("btn-primary");
             startButton.classList.add("btn-outline-secondary");
 
-            // ✅ Stop tracking
+            //Stop tracking
             stopWatchLocation(watchIdStart);
             watchIdStart = null;
 
@@ -257,14 +255,14 @@ window.addEventListener("DOMContentLoaded", function () {
             zielButton.classList.add("btn-primary");
             zielButton.classList.remove("btn-outline-secondary");
 
-            // ✅ Start tracking
+            //Start tracking
             watchIdZiel = startWatchLocation(zielInput, zielHidden);
 
         } else {
             zielButton.classList.remove("btn-primary");
             zielButton.classList.add("btn-outline-secondary");
 
-            // ✅ Stop tracking
+            //Stop tracking
             stopWatchLocation(watchIdZiel);
             watchIdZiel = null;
 
