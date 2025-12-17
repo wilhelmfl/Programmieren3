@@ -53,13 +53,13 @@ let watchIdZiel = null;
 
 window.addEventListener("DOMContentLoaded", function () {
 
-    // Buttons & Inputs
+    // buttons & eingabefelder
     const startButton = document.getElementById("location-toggle");
     const startInput = document.getElementById("start-input");
     const zielButton = document.getElementById("location-toggle-ziel");
     const zielInput = document.getElementById("ziel-input");
 
-    // Hidden Inputs für Koordinaten (werden mit dem Formular gesendet)
+    // Hidden Inputs für Koordinaten 
     const startHidden = document.createElement("input");
     startHidden.type = "hidden";
     startHidden.name = "start_coords";
@@ -69,7 +69,7 @@ window.addEventListener("DOMContentLoaded", function () {
     zielHidden.type = "hidden";
     zielHidden.name = "ziel_coords";
     zielInput.parentNode.appendChild(zielHidden);
-
+//funktion zum starten des standort abrufs
     function startWatchLocation(inputField, hiddenField) {
         if (!navigator.geolocation) {
             alert("Geolocation wird von Ihrem Browser nicht unterstützt.");
@@ -80,10 +80,10 @@ window.addEventListener("DOMContentLoaded", function () {
             const lat = pos.coords.latitude;
             const lon = pos.coords.longitude;
 
-            // Sichtbar im Feld
+            // "Mein Standort" in das Eingabefeld schreiben
             inputField.value = "Mein Standort";
 
-            // Pro User / pro Request
+            
             hiddenField.value = JSON.stringify({ lat, lon });
 
         }, err => {
@@ -101,24 +101,23 @@ window.addEventListener("DOMContentLoaded", function () {
         }
     }
 
-    // Start-Button
+    // start mein Standort knopf
     startButton.addEventListener("click", function () {
         if (!startButton.classList.contains("btn-primary")) {
             startButton.classList.add("btn-primary");
             startButton.classList.remove("btn-outline-secondary");
 
-            // Start-Tracking
+            // standort abrufen
             watchIdStart = startWatchLocation(startInput, startHidden);
 
         } else {
             startButton.classList.remove("btn-primary");
             startButton.classList.add("btn-outline-secondary");
 
-            // Stop-Tracking
+            // standort nicht weiter abrufen
             stopWatchLocation(watchIdStart);
             watchIdStart = null;
 
-            // NUR löschen, wenn wirklich "Mein Standort" drinsteht
             if (startInput.value === "Mein Standort") {
                 startInput.value = "";
             }
@@ -128,18 +127,18 @@ window.addEventListener("DOMContentLoaded", function () {
         }
     });
 
-    // Ziel-Button
+    // ziel mein Standort knopf
     zielButton.addEventListener("click", function () {
         if (!zielButton.classList.contains("btn-primary")) {
             zielButton.classList.add("btn-primary");
             zielButton.classList.remove("btn-outline-secondary");
-
+            //standort abrufen
             watchIdZiel = startWatchLocation(zielInput, zielHidden);
 
         } else {
             zielButton.classList.remove("btn-primary");
             zielButton.classList.add("btn-outline-secondary");
-
+            //standort nicht weiter abrufen
             stopWatchLocation(watchIdZiel);
             watchIdZiel = null;
 
@@ -154,7 +153,7 @@ window.addEventListener("DOMContentLoaded", function () {
 
 });
 </script>
-
+<!--bar um zwischen routenplaner und infos wechseln-->
 <nav class="navbar navbar-expand-lg navbar-light bg-light navbar-form">
     <div class="container-fluid">
         <!-- Anzeige aktuelle Seite -->
@@ -172,7 +171,7 @@ window.addEventListener("DOMContentLoaded", function () {
         </div>
     </div>
 </nav>
-
+<!--eingabefelder sowie knöpfe definition-->
 <div style="text-align: center; margin-top: 30px;">
     <h1>Route berechnen</h1>
 

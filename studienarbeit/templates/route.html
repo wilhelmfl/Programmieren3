@@ -48,7 +48,7 @@ html, body {
 
 </head>
 <body>
-
+<!--leiste oben bei der man zwischen routenplaner und infos wechseln kann-->
 <nav class="navbar navbar-expand-lg navbar-light bg-light navbar-form">
     <div class="container-fluid">
 
@@ -70,15 +70,14 @@ html, body {
 </nav>
 
 
-<!-- Route-Formular -->
-<!-- Eingabeblock OBEN MITTIG -->
+
 <div class="container-fluid d-flex justify-content-center mt-4">
     <div style="width: min(90vw, 1400px);">
 
         <form action="/route" method="POST"
               class="row g-2 align-items-center justify-content-center">
 
-            <!-- Start -->
+            <!-- Startfeld mit knopf rechts -->
             <div class="col-12 col-md-3">
                 <div class="input-group input-group-lg">
                     <input type="text"
@@ -88,16 +87,16 @@ html, body {
                            placeholder="Startadresse"
                            value="{{ start }}"
                            required>
-
+                         <!-- knopf  -->   
                     <button id="location-toggle-start"
                             class="btn btn-outline-secondary"
                             type="button">📍</button>
-
+                        <!-- startkoordinatenüberabe wenn mein standort gedrückt wird -->
                     <input type="hidden" name="start_coords" id="start_coords_hidden">
                 </div>
             </div>
 
-            <!-- Ziel -->
+            <!-- Ziel mit knopf rechts -->
             <div class="col-12 col-md-3">
                 <div class="input-group input-group-lg">
                     <input type="text"
@@ -111,12 +110,12 @@ html, body {
                     <button id="location-toggle-ziel"
                             class="btn btn-outline-secondary"
                             type="button">📍</button>
-
+                        <!-- zielkoordinatenüberabe wenn mein standort gedrückt wird -->
                     <input type="hidden" name="ziel_coords" id="ziel_coords_hidden">
                 </div>
             </div>
 
-            <!-- Profil -->
+            <!-- auswahl fortbewegungsmittel -->
             <div class="col-6 col-md-2">
                 <select name="profile" class="form-select form-select-lg">
                     <option value="driving-car" {% if profile == 'driving-car' %}selected{% endif %}>Auto</option>
@@ -125,7 +124,7 @@ html, body {
                 </select>
             </div>
 
-            <!-- Button -->
+            <!-- knopf zum routen planen -->
             <div class="col-6 col-md-auto">
                 <button class="btn btn-primary btn-lg w-100" type="submit">
                     Route anzeigen
@@ -187,7 +186,7 @@ html, body {
 
 <script>
 window.addEventListener("DOMContentLoaded", function () {
-
+// bekannt machen der felder und buttons für js
     const startButton = document.getElementById("location-toggle-start");
     const startInput = document.getElementById("start-input");
     const zielButton  = document.getElementById("location-toggle-ziel");
@@ -196,17 +195,17 @@ window.addEventListener("DOMContentLoaded", function () {
     const startHidden = document.getElementById("start_coords_hidden");
     const zielHidden  = document.getElementById("ziel_coords_hidden");
 
-    // ✅ NEU: watch ids
+    //id für denbrowser zum standort abrufen
     let watchIdStart = null;
     let watchIdZiel = null;
 
-    // ✅ Geändert: watchPosition statt getCurrentPosition
+    //standort abrufen funktion
     function startWatchLocation(inputField, hiddenField) {
         if (!navigator.geolocation) {
             alert("Geolocation wird von Ihrem Browser nicht unterstützt.");
             return null;
         }
-
+        // standort wird übergeben, "Mein standort" in das eingabefeld übergeben
         return navigator.geolocation.watchPosition(pos => {
             const { latitude, longitude } = pos.coords;
 
@@ -215,13 +214,13 @@ window.addEventListener("DOMContentLoaded", function () {
 
         }, err => {
             alert("Standort konnte nicht ermittelt werden.");
-        }, {
+        }, {//einstellungen für die funktion
             enableHighAccuracy: true,
             maximumAge: 2000,
             timeout: 10000
         });
     }
-
+//stoppt das dauernde abrufen des standorts
     function stopWatchLocation(watchId) {
         if (watchId !== null) {
             navigator.geolocation.clearWatch(watchId);
@@ -233,14 +232,14 @@ window.addEventListener("DOMContentLoaded", function () {
             startButton.classList.add("btn-primary");
             startButton.classList.remove("btn-outline-secondary");
 
-            // ✅ Start tracking
+            
             watchIdStart = startWatchLocation(startInput, startHidden);
 
         } else {
             startButton.classList.remove("btn-primary");
             startButton.classList.add("btn-outline-secondary");
 
-            // ✅ Stop tracking
+            
             stopWatchLocation(watchIdStart);
             watchIdStart = null;
 
@@ -254,7 +253,7 @@ window.addEventListener("DOMContentLoaded", function () {
 
     zielButton.addEventListener("click", function () {
 
-        // ⛔ Stoppe Start-Tracking, falls aktiv
+        
         if (watchIdStart !== null) {
             stopWatchLocation(watchIdStart);
          watchIdStart = null;
@@ -302,7 +301,7 @@ document.getElementById("zeit-jetzt").addEventListener("click", () => {
 
     berechneAnkunft();
 });
-
+//ankunstberechnung
 function berechneAnkunft() {
     if (routeDurationSec === 0) return;
     if (!inputZeit.value) return;
