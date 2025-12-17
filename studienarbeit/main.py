@@ -169,9 +169,9 @@ def route_ergebnis():
         m = folium.Map(location=[center_lat, center_lon], zoom_start=12)
 
         folium.Marker([start_lat, start_lon], tooltip=start_address,
-                      icon=folium.Icon(color="green")).add_to(m)
+                      icon=folium.Icon(color="green", icon="play")).add_to(m)
         folium.Marker([end_lat, end_lon], tooltip=end_address,
-                      icon=folium.Icon(color="red")).add_to(m)
+                      icon=folium.Icon(color="red", icon="stop")).add_to(m)
         folium.PolyLine(route_points, color="blue", weight=5).add_to(m)
 
         lats = [p[0] for p in route_points]
