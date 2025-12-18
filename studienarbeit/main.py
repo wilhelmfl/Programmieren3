@@ -158,11 +158,12 @@ def route_ergebnis():
         distance_km_zwei = round(distance_m / 1000, 2)
 
         total_minutes = int(round(duration_s / 60))
-        if total_minutes >= 60:
+        if total_minutes >= 1440:  # ≥ 1 Tag
+            dauer_text = f"{total_minutes // 1440} d {(total_minutes % 1440) // 60} h {total_minutes % 60} min"
+        elif total_minutes >= 60:  # ≥ 1 Stunde
             dauer_text = f"{total_minutes // 60} h {total_minutes % 60} min"
-        else:
+        else:  # < 1 Stunde
             dauer_text = f"{total_minutes} min"
-
         center_lat = (start_lat + end_lat) / 2
         center_lon = (start_lon + end_lon) / 2
 
